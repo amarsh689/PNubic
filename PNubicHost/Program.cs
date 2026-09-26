@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 
 var builder = WebApplication.CreateBuilder(args);
 var adminPassword = builder.Configuration["AdminPassword"] ?? "pnubic-local-admin";
+var discordWebhookUrl = builder.Configuration["DiscordWebhookUrl"] ?? string.Empty;
 
 builder.Services.AddResponseCompression();
 builder.Services.AddCors(options =>
@@ -103,6 +104,28 @@ static string BuildAdminHtml(List<object> rows)
     return $@"<!doctype html><html><head><meta charset='utf-8' /><title>PNubic Admin</title><style>body{{font-family:Segoe UI, sans-serif; background:#050505; color:#f5f5f5; padding:24px;}} table{{width:100%; border-collapse:collapse; background:#0c0c0f;}} th,td{{padding:10px 12px; border-bottom:1px solid #1f1f23; text-align:left; vertical-align:top;}} th{{color:#9ca3af; font-size:11px; letter-spacing:.18em; text-transform:uppercase;}} tr:nth-child(even){{background:rgba(255,255,255,.02);}} .wrap{{max-width:1200px; margin:0 auto;}} h1{{margin-bottom:20px;}} .muted{{color:#9ca3af; margin-bottom:20px;}} a{{color:#f87171;}}</style></head><body><div class='wrap'><h1>PNubic Visitor Admin</h1><div class='muted'>Private local-only dashboard. Only visible on localhost.</div><table><thead><tr><th>Name</th><th>Email</th><th>Social</th><th>IP</th><th>Page</th><th>Time</th></tr></thead><tbody>{rowsHtml}</tbody></table></div></body></html>";
 }
 
+static async Task SendDiscordAlertAsync(string webhookUrl, VisitorSubmission payload, string ip)
+{
+    if (string.IsNullOrWhiteSpace(webhookUrl)) return;
+
+    var name = payload.Name ?? "Anonymous visitor";
+    var email = payload.Email ?? "not provided";
+    var handle = payload.SocialHandle ?? "not provided";
+    var page = payload.PageUrl ?? "unknown";
+    var message = $"🚨 New PNubic visitor\nName: {name}\nEmail: {email}\nSocial: {handle}\nPage: {page}\nIP: {ip}\nUser agent: {payload.UserAgent ?? "unknown"}";
+
+    try
+    {
+        using var client = new HttpClient();
+        var content = new { username = "PNubic Visitor Bot", content = message };
+        await client.PostAsJsonAsync(webhookUrl, content);
+    }
+    catch
+    {
+        // ignore webhook failures so the site stays working
+    }
+}
+
 app.UseCors("VisitorPolicy");
 app.UseResponseCompression();
 app.UseDefaultFiles();
@@ -168,6 +191,11 @@ app.MapPost("/api/visitors", async (VisitorSubmission payload, HttpContext conte
     command.Parameters.AddWithValue("$consentGranted", payload.ConsentGranted ? 1 : 0);
 
     await command.ExecuteNonQueryAsync();
+
+    if (!string.IsNullOrWhiteSpace(discordWebhookUrl))
+    {
+        await SendDiscordAlertAsync(discordWebhookUrl, payload, ip);
+    }
 
     return Results.Ok(new { success = true, storedAt = timestamp });
 });
