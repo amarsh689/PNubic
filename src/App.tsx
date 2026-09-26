@@ -8,8 +8,8 @@ import { SearchResults } from './components/SearchResults'
 import { Sigil } from './components/Sigil'
 import { TrackRow } from './components/TrackRow'
 import { registerMediaActions, setMediaSession } from './audio'
-import { searchTracks, streamUrl, trending } from './api'
-import type { Track, View } from './types'
+import { fetchVisitors, logVisitor, searchTracks, streamUrl, trending } from './api'
+import type { Track, View, VisitorRecord } from './types'
 
 const read = <T,>(key: string, fallback: T): T => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback } catch { return fallback } }
 const write = (key: string, value: unknown) => { try { localStorage.setItem(key, JSON.stringify(value)) } catch {} }
@@ -29,11 +29,38 @@ export default function App() {
   const [volume, setVolume] = useState(.85)
   const [liked, setLiked] = useState<Set<string>>(new Set(read<string[]>('pnubic-likes', [])))
   const [recentQueries, setRecentQueries] = useState<string[]>(read<string[]>('pnubic-queries', []))
+  const [leadName, setLeadName] = useState('')
+  const [leadEmail, setLeadEmail] = useState('')
+  const [leadSocial, setLeadSocial] = useState('')
+  const [leadMessage, setLeadMessage] = useState('')
+  const [leadSaved, setLeadSaved] = useState(false)
+  const [visitors, setVisitors] = useState<VisitorRecord[]>([])
+  const showVisitors = useMemo(() => {
+    const host = window.location.hostname
+    return host === 'localhost' || host === '127.0.0.1' || host === '::1'
+  }, [])
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const searchTimer = useRef<number | undefined>(undefined)
   const requestId = useRef(0)
 
   useEffect(() => { trending().then(setHot).catch(()=>{}) }, [])
+
+  useEffect(() => {
+    if (view !== 'visitors') return
+    void fetchVisitors().then(setVisitors)
+  }, [view])
+
+  useEffect(() => {
+    void logVisitor({
+      pageUrl: window.location.href,
+      referrer: document.referrer || undefined,
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || undefined,
+      screen: typeof window !== 'undefined' && window.screen ? `${window.screen.width}x${window.screen.height}` : undefined,
+      consentGranted: true
+    })
+  }, [])
 
   useEffect(() => {
     const audio = new Audio()
@@ -71,6 +98,38 @@ export default function App() {
     setRecentQueries(next); write('pnubic-queries',next)
   }
 
+  async function saveLead() {
+    const payload = {
+      pageUrl: window.location.href,
+      referrer: document.referrer || undefined,
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || undefined,
+      screen: typeof window !== 'undefined' && window.screen ? `${window.screen.width}x${window.screen.height}` : undefined,
+      name: leadName.trim() || undefined,
+      email: leadEmail.trim() || undefined,
+      socialHandle: leadSocial.trim() || undefined,
+      consentGranted: true
+    }
+
+    try {
+      const res = await fetch((import.meta.env.VITE_VISITOR_LOG_URL ?? 'http://localhost:5000/api/visitors'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      if (res.ok) {
+        setLeadSaved(true)
+        setLeadName('')
+        setLeadEmail('')
+        setLeadSocial('')
+        setLeadMessage('')
+      }
+    } catch {
+      setLeadSaved(false)
+    }
+  }
+
   async function playTrack(t: Track, list: Track[]) {
     const audio = audioRef.current; if (!audio) return
     setTrack(t); setQueue(list)
@@ -96,7 +155,7 @@ export default function App() {
   return <div className="noise min-h-screen bg-[radial-gradient(circle_at_top,rgba(255,35,72,.04),transparent_28%),#050505] pb-28">
     <Intro />
     <div className="flex min-h-screen">
-      <Sidebar view={view} setView={setView}/>
+      <Sidebar view={view} setView={setView} showVisitors={showVisitors}/>
       <div className="min-w-0 flex-1">
         <header className="sticky top-0 z-30 border-b border-white/[.06] bg-[#050505]/75 backdrop-blur-2xl">
           <div className="mx-auto flex h-[76px] max-w-[1500px] items-center gap-3 px-4 sm:px-7">
@@ -110,11 +169,12 @@ export default function App() {
           {view==='home'&&<Home tracks={hot} liked={liked} activeId={track?.id} onPlay={playTrack} onLike={toggleLike} setSearch={q=>{setQuery(q);setView('search')}}/>}
           {view==='search'&&<SearchResults query={query} tracks={results} loading={searching} liked={liked} activeId={track?.id} onPlay={playTrack} onLike={toggleLike} recentQueries={recentQueries}/>} 
           {view==='library'&&<div className="mx-auto max-w-6xl px-4 py-8 sm:px-7"><div className="text-[10px] uppercase tracking-[.3em] text-zinc-600">your space</div><h1 className="mt-2 font-display text-4xl font-semibold">My Library</h1><p className="mt-2 text-sm text-zinc-500">Local listening history and likes. Nothing is uploaded anywhere.</p><div className="mt-7 space-y-1">{library.length?library.map((t,i)=><TrackRow key={t.id} track={t} index={i} active={track?.id===t.id} liked={liked.has(t.id)} onPlay={()=>playTrack(t,library)} onLike={()=>toggleLike(t)}/>):<div className="glass rounded-2xl p-10 text-center text-sm text-zinc-600">Your listening history will appear here.</div>}</div></div>}
-          {view==='about'&&<div className="mx-auto max-w-4xl px-4 py-10 sm:px-7"><div className="glass overflow-hidden rounded-[28px] p-7 sm:p-10"><Sigil className="h-20 w-20 text-red-400/70"/><h1 className="mt-8 font-display text-4xl font-semibold">PNubic</h1><p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-400">A personal, dark music interface built with React + TypeScript + Tailwind and streamed from Audius. Search is deliberately broader than a single exact-match request: close spellings and multiple relevance signals are merged before the UI renders results.</p><div className="mt-8 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border border-white/[.06] bg-white/[.025] p-4"><div className="text-xs uppercase tracking-[.2em] text-zinc-600">stack</div><div className="mt-2 text-sm">React · TypeScript · Tailwind</div></div><div className="rounded-2xl border border-white/[.06] bg-white/[.025] p-4"><div className="text-xs uppercase tracking-[.2em] text-zinc-600">audio</div><div className="mt-2 text-sm">HTML5 Audio · Media Session</div></div><div className="rounded-2xl border border-white/[.06] bg-white/[.025] p-4"><div className="text-xs uppercase tracking-[.2em] text-zinc-600">source</div><div className="mt-2 text-sm">Audius open music catalog</div></div></div></div></div>}
+          {view==='visitors'&&showVisitors&&<div className="mx-auto max-w-7xl px-4 py-8 sm:px-7"><div className="mb-6 flex items-center justify-between gap-4"><div><div className="text-[10px] uppercase tracking-[.3em] text-zinc-600">records</div><h1 className="mt-2 font-display text-4xl font-semibold">Visitor Log</h1></div><button onClick={()=>fetchVisitors().then(setVisitors)} className="rounded-full border border-white/[.08] bg-white/[.02] px-4 py-2 text-xs text-zinc-300">Refresh</button></div><div className="glass overflow-hidden rounded-[28px]"><div className="overflow-x-auto"><table className="min-w-full text-left text-sm text-zinc-200"><thead className="bg-white/[.02] text-[10px] uppercase tracking-[.22em] text-zinc-500"><tr><th className="px-4 py-3">Name</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Social</th><th className="px-4 py-3">IP</th><th className="px-4 py-3">Page</th><th className="px-4 py-3">Time</th></tr></thead><tbody>{visitors.length ? visitors.map(v => <tr key={v.id} className="border-t border-white/[.06] align-top"><td className="px-4 py-3 text-white">{v.name ?? '—'}</td><td className="px-4 py-3 text-zinc-300">{v.email ?? '—'}</td><td className="px-4 py-3 text-zinc-300">{v.socialHandle ?? '—'}</td><td className="px-4 py-3 text-zinc-300">{v.ipAddress ?? '—'}</td><td className="px-4 py-3 text-zinc-300"><div className="max-w-xs break-all">{v.pageUrl ?? '—'}</div></td><td className="px-4 py-3 text-zinc-300">{v.timestampUtc ? new Date(v.timestampUtc).toLocaleString() : '—'}</td></tr>) : <tr><td colSpan={6} className="px-4 py-10 text-center text-zinc-500">No visitor records yet.</td></tr>}</tbody></table></div></div></div>}
+          {view==='about'&&<div className="mx-auto max-w-4xl px-4 py-10 sm:px-7"><div className="glass overflow-hidden rounded-[28px] p-7 sm:p-10"><Sigil className="h-20 w-20 text-red-400/70"/><h1 className="mt-8 font-display text-4xl font-semibold">PNubic</h1><p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-400">A personal, dark music interface built with React + TypeScript + Tailwind and streamed from Audius. Search is deliberately broader than a single exact-match request: close spellings and multiple relevance signals are merged before the UI renders results.</p><div className="mt-8 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border border-white/[.06] bg-white/[.025] p-4"><div className="text-xs uppercase tracking-[.2em] text-zinc-600">stack</div><div className="mt-2 text-sm">React · TypeScript · Tailwind</div></div><div className="rounded-2xl border border-white/[.06] bg-white/[.025] p-4"><div className="text-xs uppercase tracking-[.2em] text-zinc-600">audio</div><div className="mt-2 text-sm">HTML5 Audio · Media Session</div></div><div className="rounded-2xl border border-white/[.06] bg-white/[.025] p-4"><div className="text-xs uppercase tracking-[.2em] text-zinc-600">source</div><div className="mt-2 text-sm">Audius open music catalog</div></div></div><div className="mt-8 rounded-2xl border border-red-500/20 bg-red-500/[.04] p-5"><div className="text-[10px] uppercase tracking-[.28em] text-red-300">visitor capture</div><h2 className="mt-2 text-xl font-semibold text-white">Save visitor info for follow-up</h2><div className="mt-4 grid gap-3 sm:grid-cols-2"><input value={leadName} onChange={e=>setLeadName(e.target.value)} placeholder="Your name" className="rounded-xl border border-white/[.08] bg-[#0a0a0a] px-3 py-2.5 text-sm text-white placeholder:text-zinc-600"/><input value={leadEmail} onChange={e=>setLeadEmail(e.target.value)} placeholder="Email" type="email" className="rounded-xl border border-white/[.08] bg-[#0a0a0a] px-3 py-2.5 text-sm text-white placeholder:text-zinc-600"/><input value={leadSocial} onChange={e=>setLeadSocial(e.target.value)} placeholder="Instagram / X / social handle" className="sm:col-span-2 rounded-xl border border-white/[.08] bg-[#0a0a0a] px-3 py-2.5 text-sm text-white placeholder:text-zinc-600"/><textarea value={leadMessage} onChange={e=>setLeadMessage(e.target.value)} placeholder="Tell us what you are looking for" rows={3} className="sm:col-span-2 rounded-xl border border-white/[.08] bg-[#0a0a0a] px-3 py-2.5 text-sm text-white placeholder:text-zinc-600"/></div><div className="mt-4 flex items-center justify-between gap-3"><button onClick={saveLead} className="rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-400">Save visitor info</button>{leadSaved && <span className="text-xs text-emerald-400">Saved successfully</span>}</div></div></div></div>}
         </main>
       </div>
     </div>
-    <MobileNav view={view} setView={setView}/>
+    <MobileNav view={view} setView={setView} showVisitors={showVisitors}/>
     <Player track={track} playing={playing} current={current} duration={duration} volume={volume} liked={track?liked.has(track.id):false} onToggle={toggle} onSeek={seek} onPrev={prev} onNext={next} onVolume={setVolume} onLike={()=>track&&toggleLike(track)} onQueue={()=>{}}/>
   </div>
 }

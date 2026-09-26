@@ -12,4 +12,20 @@ export type Track = {
   streamable?: boolean
 }
 
-export type View = 'home' | 'search' | 'library' | 'about'
+export type View = 'home' | 'search' | 'library' | 'about' | 'visitors'
+
+export type VisitorRecord = {
+  id: number
+  timestampUtc?: string | null
+  pageUrl?: string | null
+  referrer?: string | null
+  ipAddress?: string | null
+  userAgent?: string | null
+  language?: string | null
+  timezone?: string | null
+  screen?: string | null
+  name?: string | null
+  email?: string | null
+  socialHandle?: string | null
+  consentGranted?: boolean
+}

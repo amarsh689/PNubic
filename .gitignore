@@ -2,3 +2,11 @@ node_modules/
 dist/
 .env*
 !.env.example
+bin/
+obj/
+*.db
+*.db-shm
+*.db-wal
+*.tsbuildinfo
+.vs/
+.DS_Store

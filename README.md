@@ -35,9 +35,13 @@ The static site is generated in `dist/` and can be deployed to GitHub Pages.
 
 This repo includes a workflow under `.github/workflows/pages.yml` that builds the React app and deploys `dist/` to GitHub Pages.
 
+Public site: https://amarsh689.github.io/PNubic/
+
 In GitHub: Settings → Pages → Source: GitHub Actions.
 
 The Vite base path is `./`, so the app works as a project site such as `https://USERNAME.github.io/PNubic/`.
+
+The private admin dashboard remains local-only and is not published to the public GitHub Pages site.
 
 ## ASP.NET Core host
 
