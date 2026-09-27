@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PNubicHost")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c5726499e7817955ea45c4454607328e14a01fb5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7b167d42a1d5c641f31a9f439411c0d84f48e446")]
 [assembly: System.Reflection.AssemblyProductAttribute("PNubicHost")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PNubicHost")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
