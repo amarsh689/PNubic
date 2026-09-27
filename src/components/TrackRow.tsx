@@ -4,9 +4,9 @@ import type { Track } from '../types'
 const duration = (seconds = 0) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
 
 export function TrackRow({ track, index, active, liked, onPlay, onLike }: { track: Track; index: number; active: boolean; liked: boolean; onPlay: () => void; onLike: () => void }) {
-  return <div className={`group grid grid-cols-[34px_1fr_auto] items-center gap-3 rounded-xl px-2 py-2 transition sm:grid-cols-[40px_48px_minmax(0,1fr)_90px_44px] ${active ? 'bg-red-500/[.07]' : 'hover:bg-white/[.035]'}`}>
+  return <div className={`group grid grid-cols-[34px_1fr_auto] items-center gap-3 rounded-xl border px-2 py-2 transition sm:grid-cols-[40px_48px_minmax(0,1fr)_90px_44px] ${active ? 'border-red-500/20 bg-gradient-to-r from-red-600/18 to-black/80 shadow-[inset_0_0_30px_rgba(255,35,72,.06)]' : 'border-white/[.04] bg-[#08090a]/90 hover:border-red-500/15 hover:bg-[#101114]'}`}>
     <div className="hidden text-center text-xs tabular-nums text-zinc-600 sm:block">{index + 1}</div>
-    <button onClick={onPlay} className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-zinc-900">
+    <button onClick={onPlay} className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-white/[.06] bg-zinc-950">
       {track.artwork?.['150x150'] ? <img src={track.artwork['150x150']} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full w-full place-items-center text-zinc-600">♪</div>}
       <span className="absolute inset-0 grid place-items-center bg-black/55 opacity-0 transition group-hover:opacity-100"><Play size={17} fill="currentColor" /></span>
     </button>

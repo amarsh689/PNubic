@@ -81,3 +81,26 @@ button { cursor: pointer; }
 
 .scrollbar::-webkit-scrollbar { width: 8px; }
 .scrollbar::-webkit-scrollbar-thumb { background: #24242a; border-radius: 999px; }
+
+.ritual-toast {
+  position: fixed;
+  right: 1.5rem;
+  top: 1.25rem;
+  z-index: 200;
+  border: 1px solid rgba(255, 64, 82, 0.38);
+  background: rgba(17, 6, 8, 0.9);
+  box-shadow: 0 0 30px rgba(255, 35, 72, 0.24), inset 0 0 18px rgba(255, 35, 72, 0.08);
+  color: #ffd8dc;
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  padding: 0.9rem 1.1rem;
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+  animation: ritualFade 0.35s ease-out;
+}
+
+@keyframes ritualFade {
+  from { opacity: 0; transform: translateY(-18px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
