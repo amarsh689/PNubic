@@ -6,7 +6,7 @@ const fmt = (v=0) => `${Math.floor(v/60)}:${String(Math.floor(v%60)).padStart(2,
 export function Player({ track, playing, current, duration, volume, liked, onToggle, onSeek, onPrev, onNext, onVolume, onLike, onQueue }: {
   track?: Track; playing: boolean; current: number; duration: number; volume: number; liked: boolean; onToggle: () => void; onSeek: (v: number) => void; onPrev: () => void; onNext: () => void; onVolume: (v:number) => void; onLike: () => void; onQueue: () => void
 }) {
-  if (!track) return <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[.06] bg-black/80 px-4 py-4 backdrop-blur-xl"><div className="mx-auto max-w-6xl text-center text-xs uppercase tracking-[.3em] text-zinc-600">select a track to enter the sound</div></div>
+  if (!track) return null
   return <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[.07] bg-[#070709]/92 px-3 py-3 backdrop-blur-2xl sm:px-5 sm:py-4">
     <div className="mx-auto max-w-[1500px]">
       <div className="flex items-center gap-3 sm:gap-4">
