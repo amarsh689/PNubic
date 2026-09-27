@@ -12,7 +12,7 @@ export type Track = {
   streamable?: boolean
 }
 
-export type View = 'home' | 'search' | 'library' | 'about' | 'visitors'
+export type View = 'home' | 'search' | 'library' | 'about' | 'amarsh' | 'visitors'
 
 export type VisitorRecord = {
   id: number
