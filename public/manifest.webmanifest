@@ -1,0 +1,9 @@
+{
+  "name": "PNubic",
+  "short_name": "PNubic",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "description": "A personal dark music player powered by Audius."
+}

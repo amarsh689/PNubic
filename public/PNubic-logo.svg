@@ -1,0 +1,33 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="72%">
+      <stop stop-color="#31070D"/>
+      <stop offset="0.56" stop-color="#10090C"/>
+      <stop offset="1" stop-color="#050505"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="96" y1="436" x2="418" y2="76" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF4967"/>
+      <stop offset="0.38" stop-color="#FF2444"/>
+      <stop offset="1" stop-color="#FFC0C4"/>
+    </linearGradient>
+    <linearGradient id="eye" x1="256" y1="130" x2="256" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF5D7A"/>
+      <stop offset="0.5" stop-color="#FF2348"/>
+      <stop offset="1" stop-color="#6B0918"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="190" stroke="#3D1018" stroke-width="2" stroke-dasharray="5 15"/>
+  <circle cx="256" cy="256" r="170" stroke="#210A10" stroke-width="2" stroke-dasharray="1 16"/>
+
+  <path d="M256 72L424 382H88L256 72Z" stroke="url(#ring)" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M256 128L348 304H164L256 128Z" fill="#0C0B0C" stroke="#97172A" stroke-width="7" stroke-linejoin="round"/>
+
+  <path d="M132 256C166 212 208 191 256 191C304 191 346 212 380 256C346 300 304 321 256 321C208 321 166 300 132 256Z" fill="url(#eye)" stroke="#FF7F94" stroke-width="6"/>
+  <path d="M170 256C196 232 224 220 256 220C288 220 316 232 342 256C316 280 288 292 256 292C224 292 196 280 170 256Z" fill="#090909" stroke="#FF6F8C" stroke-width="4"/>
+  <circle cx="256" cy="256" r="28" fill="#FF2348"/>
+  <circle cx="256" cy="256" r="10" fill="#18070B"/>
+
+  <path d="M256 160V114M256 398V352M198 202L176 178M336 202L358 178M198 310L176 334M336 310L358 334" stroke="#FFD9DE" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+</svg>
