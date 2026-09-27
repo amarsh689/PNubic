@@ -26,6 +26,7 @@ export type VisitorRecord = {
   screen?: string | null
   name?: string | null
   email?: string | null
+  phoneNumber?: string | null
   socialHandle?: string | null
   consentGranted?: boolean
 }

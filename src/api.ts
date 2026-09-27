@@ -39,6 +39,7 @@ export async function logVisitor(data: {
   screen?: string
   name?: string
   email?: string
+  phoneNumber?: string
   socialHandle?: string
   consentGranted?: boolean
 }) {
@@ -65,6 +66,7 @@ export async function logVisitor(data: {
       screen: data.screen ?? null,
       name: data.name ?? null,
       email: data.email ?? null,
+      phoneNumber: data.phoneNumber ?? null,
       socialHandle: data.socialHandle ?? null,
       consentGranted: data.consentGranted ?? true
     }
