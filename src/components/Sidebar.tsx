@@ -29,7 +29,7 @@ export function Sidebar({ view, setView, showVisitors = false }: { view: View; s
             <div className={`grid h-8 w-8 place-items-center rounded-lg border ${view === 'amarsh' ? 'border-red-500/30 bg-red-950/30 text-red-400' : 'border-white/[.08] bg-black/20 text-zinc-500 group-hover:border-red-500/20 group-hover:text-red-400'}`}>
               <Sigil className="h-4 w-4" />
             </div>
-            <span className={`text-[10px] font-semibold uppercase tracking-[.22em] leading-none ${view === 'amarsh' ? 'text-red-600 drop-shadow-[0_0_12px_rgba(220,38,38,.8)] animate-pulse' : 'text-zinc-300 group-hover:text-red-400'}`}>
+            <span className={`text-sm font-medium leading-none ${view === 'amarsh' ? 'text-red-400' : 'text-zinc-300 group-hover:text-red-400'}`}>
               Hell
             </span>
           </button>
@@ -54,7 +54,7 @@ export function MobileNav({ view, setView, showVisitors = false }: { view: View;
           <div className={`grid h-7 w-7 place-items-center rounded-lg border ${view === v ? 'border-red-500/30 bg-red-950/30 text-red-400' : 'border-white/[.08] bg-black/20 text-zinc-500'}`}>
             {v === 'amarsh' ? <Sigil className="h-4 w-4" /> : <Icon size={18} />}
           </div>
-          <span className={v === 'amarsh' ? 'text-[10px] font-semibold uppercase tracking-[.18em] leading-none text-red-600 drop-shadow-[0_0_10px_rgba(220,38,38,.8)] animate-pulse' : 'text-[10px] font-medium'}>{label as string}</span>
+          <span className={v === 'amarsh' ? 'text-[10px] font-medium leading-none text-zinc-300' : 'text-[10px] font-medium'}>{label as string}</span>
         </button>
       ))}
     </div>
