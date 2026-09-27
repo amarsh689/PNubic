@@ -29,7 +29,7 @@ export function Sidebar({ view, setView, showVisitors = false }: { view: View; s
             <div className={`grid h-8 w-8 place-items-center rounded-lg border ${view === 'amarsh' ? 'border-red-500/30 bg-red-950/30 text-red-400' : 'border-white/[.08] bg-black/20 text-zinc-500 group-hover:border-red-500/20 group-hover:text-red-400'}`}>
               <Sigil className="h-4 w-4" />
             </div>
-            <span className="sr-only">amarsh</span>
+            <span className="text-[10px] uppercase tracking-[.22em] text-zinc-300">Hell</span>
           </button>
         </div>
         <div className="mt-auto rounded-2xl border border-white/[.06] bg-white/[.02] p-4">
@@ -42,12 +42,19 @@ export function Sidebar({ view, setView, showVisitors = false }: { view: View; s
 
 export function MobileNav({ view, setView, showVisitors = false }: { view: View; setView: (v: View) => void; showVisitors?: boolean }) {
   const items: Array<[View, string, typeof Compass]> = [
-    ['home', 'Home', Compass], ['search', 'Search', Radio], ['library', 'Library', Library], ['about', 'About', Disc3], ['amarsh', ' ', KeyRound]
+    ['home', 'Home', Compass], ['search', 'Search', Radio], ['library', 'Library', Library], ['about', 'About', Disc3], ['amarsh', 'Hell', KeyRound]
   ]
 
   return <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/[.06] bg-[#070709]/90 px-2 py-2 backdrop-blur-xl lg:hidden">
     <div className="mx-auto grid max-w-md grid-cols-5">
-      {items.map(([v, label, Icon]) => v === 'amarsh' ? <button key={v as string} onClick={() => setView(v as View)} className={`flex flex-col items-center gap-1 py-2 text-[10px] ${view === v ? 'text-red-400' : 'text-zinc-500'}`}><div className={`grid h-7 w-7 place-items-center rounded-lg border ${view === v ? 'border-red-500/30 bg-red-950/30 text-red-400' : 'border-white/[.08] bg-black/20 text-zinc-500'}`}><Sigil className="h-4 w-4" /></div><span className="sr-only">amarsh</span></button> : <button key={v as string} onClick={() => setView(v as View)} className={`flex flex-col items-center gap-1 py-2 text-[10px] ${view === v ? 'text-red-400' : 'text-zinc-500'}`}><Icon size={18}/><span>{label as string}</span></button>)}
+      {items.map(([v, label, Icon]) => (
+        <button key={v as string} onClick={() => setView(v as View)} className={`flex flex-col items-center gap-1 py-2 text-[10px] ${view === v ? 'text-red-400' : 'text-zinc-500'}`}>
+          <div className={`grid h-7 w-7 place-items-center rounded-lg border ${view === v ? 'border-red-500/30 bg-red-950/30 text-red-400' : 'border-white/[.08] bg-black/20 text-zinc-500'}`}>
+            {v === 'amarsh' ? <Sigil className="h-4 w-4" /> : <Icon size={18} />}
+          </div>
+          <span>{label as string}</span>
+        </button>
+      ))}
     </div>
   </nav>
 }

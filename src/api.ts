@@ -4,8 +4,24 @@ const API_BASE = 'https://api.audius.co/v1'
 const apiKey = (import.meta.env.VITE_AUDIUS_API_KEY ?? '').trim()
 const visitorLogUrl = (import.meta.env.VITE_VISITOR_LOG_URL ?? '').trim()
 const defaultVisitorApi = 'http://localhost:5000/api/visitors'
+const demoVisitorKey = 'pnubic-demo-visitors'
 
 const headers: HeadersInit = apiKey ? { 'x-api-key': apiKey } : {}
+
+export const readDemoVisitors = (): VisitorRecord[] => {
+  try {
+    const raw = localStorage.getItem(demoVisitorKey)
+    return raw ? JSON.parse(raw) as VisitorRecord[] : []
+  } catch {
+    return []
+  }
+}
+
+export const writeDemoVisitors = (records: VisitorRecord[]) => {
+  try {
+    localStorage.setItem(demoVisitorKey, JSON.stringify(records))
+  } catch {}
+}
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, { headers })
@@ -35,20 +51,41 @@ export async function logVisitor(data: {
       body: JSON.stringify(data),
       credentials: 'omit'
     })
-    return res.ok
+    if (!res.ok) throw new Error('visitor log rejected')
+    return true
   } catch {
-    return false
+    const demoRecord: VisitorRecord = {
+      id: Date.now(),
+      timestampUtc: new Date().toISOString(),
+      pageUrl: data.pageUrl ?? null,
+      referrer: data.referrer ?? null,
+      userAgent: data.userAgent ?? null,
+      language: data.language ?? null,
+      timezone: data.timezone ?? null,
+      screen: data.screen ?? null,
+      name: data.name ?? null,
+      email: data.email ?? null,
+      socialHandle: data.socialHandle ?? null,
+      consentGranted: data.consentGranted ?? true
+    }
+    const current = readDemoVisitors()
+    writeDemoVisitors([demoRecord, ...current].slice(0, 100))
+    return true
   }
 }
 
 export async function fetchVisitors(): Promise<VisitorRecord[]> {
   try {
     const res = await fetch(visitorLogUrl || defaultVisitorApi, { credentials: 'omit' })
-    if (!res.ok) return []
+    if (!res.ok) {
+      return readDemoVisitors()
+    }
     const json = await res.json() as { records?: VisitorRecord[] }
-    return json.records ?? []
+    const records = json.records ?? []
+    if (records.length > 0) return records
+    return readDemoVisitors()
   } catch {
-    return []
+    return readDemoVisitors()
   }
 }
 

@@ -8,7 +8,7 @@ import { SearchResults } from './components/SearchResults'
 import { Sigil } from './components/Sigil'
 import { TrackRow } from './components/TrackRow'
 import { registerMediaActions, setMediaSession } from './audio'
-import { fetchVisitors, logVisitor, searchTracks, streamUrl, trending } from './api'
+import { fetchVisitors, logVisitor, readDemoVisitors, searchTracks, streamUrl, trending, writeDemoVisitors } from './api'
 import type { Track, View, VisitorRecord } from './types'
 
 const read = <T,>(key: string, fallback: T): T => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback } catch { return fallback } }
@@ -39,10 +39,7 @@ export default function App() {
   const [amarshError, setAmarshError] = useState('')
   const [amarshUnlocked, setAmarshUnlocked] = useState(false)
   const [visitors, setVisitors] = useState<VisitorRecord[]>([])
-  const showVisitors = useMemo(() => {
-    const host = window.location.hostname
-    return host === 'localhost' || host === '127.0.0.1' || host === '::1'
-  }, [])
+  const showVisitors = useMemo(() => true, [])
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const searchTimer = useRef<number | undefined>(undefined)
   const requestId = useRef(0)
@@ -167,6 +164,21 @@ export default function App() {
       consentGranted: true
     }
 
+    const demoRecord: VisitorRecord = {
+      id: Date.now(),
+      timestampUtc: new Date().toISOString(),
+      pageUrl: payload.pageUrl ?? null,
+      referrer: payload.referrer ?? null,
+      userAgent: payload.userAgent ?? null,
+      language: payload.language ?? null,
+      timezone: payload.timezone ?? null,
+      screen: payload.screen ?? null,
+      name: payload.name ?? null,
+      email: payload.email ?? null,
+      socialHandle: payload.socialHandle ?? null,
+      consentGranted: true
+    }
+
     try {
       await fetch((import.meta.env.VITE_VISITOR_LOG_URL ?? 'http://localhost:5000/api/visitors'), {
         method: 'POST',
@@ -176,8 +188,11 @@ export default function App() {
     } catch {
       // Offline fallthrough: still show the app's ritual confirmation.
     } finally {
+      const nextVisitors = [demoRecord, ...readDemoVisitors()]
+      writeDemoVisitors(nextVisitors.slice(0, 100))
       setLeadSaved(true)
       setToastVisible(true)
+      setVisitors(prev => [demoRecord, ...prev])
       setLeadName('')
       setLeadEmail('')
       setLeadSocial('')
